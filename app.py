@@ -55,7 +55,7 @@ st.markdown("""
 
 # App Header
 st.title("🎓 Student Exam Performance Predictor")
-st.write("Enter the student details below to generate a prediction using your deployed **KNeighborsRegressor** model[cite: 1].")
+st.write("Enter the student details below to generate a prediction using your KNeighborsRegressor model.")
 
 # Input Form with Layout Containers
 with st.form("prediction_form"):
@@ -80,21 +80,30 @@ with st.form("prediction_form"):
 
     submitted = st.form_submit_button("Predict Score")
 
-# Prediction Logic
+# Prediction Logic with Explicit Mapping & Casting
 if submitted:
+    # Categorical Mappings
+    gender_map = {"Male": 0, "Female": 1, "Other": 2}
+    course_map = {"Science": 0, "Arts": 1, "Commerce": 2, "Engineering": 3, "Other": 4}
+    internet_map = {"Yes": 1, "No": 0}
+    sleep_quality_map = {"Poor": 0, "Average": 1, "Good": 2, "Excellent": 3}
+    study_method_map = {"Self-study": 0, "Online videos": 1, "Group study": 2, "Coaching": 3}
+    exam_difficulty_map = {"Easy": 0, "Medium": 1, "Hard": 2}
+
+    # Create DataFrame and explicitly convert everything to float
     input_data = pd.DataFrame({
         'age': [age],
-        'gender': [gender],
-        'course': [course],
+        'gender': [gender_map[gender]],
+        'course': [course_map[course]],
         'study_hours': [study_hours],
         'class_attendance': [class_attendance],
-        'internet_access': [internet_access],
+        'internet_access': [internet_map[internet_access]],
         'sleep_hours': [sleep_hours],
-        'sleep_quality': [sleep_quality],
-        'study_method': [study_method],
+        'sleep_quality': [sleep_quality_map[sleep_quality]],
+        'study_method': [study_method_map[study_method]],
         'facility_rating': [facility_rating],
-        'exam_difficulty': [exam_difficulty]
-    })
+        'exam_difficulty': [exam_difficulty_map[exam_difficulty]]
+    }).astype(float)
     
     try:
         prediction = model.predict(input_data)
@@ -106,4 +115,3 @@ if submitted:
         """, unsafe_allow_html=True)
     except Exception as e:
         st.error(f"Prediction error: {e}")
-        st.info("⚠️ Note: If your trained model pipeline requires categorical columns to be numerically encoded rather than raw strings, please ensure your preprocessing pipeline is included inside the pickle file or applied prior to prediction.")
